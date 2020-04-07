@@ -17,7 +17,8 @@ import redis.clients.jedis.Protocol;
  * A <a href="http://en.wikipedia.org/wiki/Builder_pattern">builder</a> for configuring the Redis-based persistent data store.
  * <p>
  * Obtain an instance of this class by calling {@link Redis#dataStore()}. After calling its methods
- * to specify any desired custom settings, you can pass it directly into the SDK configuration with
+ * to specify any desired custom settings, wrap it in a {@link com.launchdarkly.sdk.server.integrations.PersistentDataStoreBuilder}
+ * by calling {@code Components.persistentDataStore()}, then pass the result into the SDK configuration with
  * {@link com.launchdarkly.sdk.server.LDConfig.Builder#dataStore(com.launchdarkly.sdk.server.interfaces.DataStoreFactory)}.
  * You do not need to call {@link #createPersistentDataStore(ClientContext)} yourself to build the actual data store; that
  * will be done by the SDK.
@@ -25,15 +26,15 @@ import redis.clients.jedis.Protocol;
  * Builder calls can be chained, for example:
  *
  * <pre><code>
-   *     LDConfig config = new LDConfig.Builder()
-   *         .dataStore(
-   *             Components.persistentDataStore(
-   *                 Redis.dataStore()
-   *                     .url("redis://my-redis-host")
-   *                     .database(1)
-   *             ).cacheSeconds(15)
-   *         )
-   *         .build();
+ *     LDConfig config = new LDConfig.Builder()
+ *         .dataStore(
+ *             Components.persistentDataStore(
+ *                 Redis.dataStore()
+ *                     .url("redis://my-redis-host")
+ *                     .database(1)
+ *             ).cacheSeconds(15)
+ *         )
+ *         .build();
  * </code></pre>
  * 
  * @since 4.12.0
