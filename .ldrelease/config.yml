@@ -7,6 +7,8 @@ publications:
 
 template:
   name: gradle
+  skip:
+    - test  # don't try to run unit tests in the Releaser environment, since they require Redis
 
 documentation:
   githubPages: true

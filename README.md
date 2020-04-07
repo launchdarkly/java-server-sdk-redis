@@ -21,7 +21,7 @@ This assumes that you have already installed the LaunchDarkly Java SDK.
           <version>1.0.0</version>
         </dependency>
 
-3. If you do not already have the Redis client in your project, add it. (This needs to be added separately, rather than being included in the LaunchDarkly jar, because some of its classes are exposed in the public interface and some applications might have a different version of it.)
+2. The Redis client library (Jedis) should be pulled in automatically if you do not specify a dependency for it. If you want to use a different version, you may add your own dependency:
 
         <dependency>
           <groupId>redis.clients</groupId>
@@ -29,32 +29,34 @@ This assumes that you have already installed the LaunchDarkly Java SDK.
           <version>2.9.0</version>
         </dependency>
 
-4. Import the LaunchDarkly package and the package for this library:
+3. Import the LaunchDarkly package and the package for this library:
 
-        import com.launchdarkly.client.*;
-        import com.launchdarkly.client.redis.*;
+        import com.launchdarkly.sdk.server.*;
+        import com.launchdarkly.sdk.server.integrations.*;
 
-5. When configuring your SDK client, add the Redis feature store:
+4. When configuring your SDK client, add the Redis data store as a `persistentDataStore`. You may specify any custom Redis options using the methods of `RedisDataStoreBuilder`. For instance, to customize the Redis URL:
 
-        RedisFeatureStoreBuilder store = RedisComponents.redisFeatureStore()
-            .caching(FeatureStoreCacheConfig.enabled().ttlSeconds(30));
-        
         LDConfig config = new LDConfig.Builder()
-            .featureStoreFactory(store)
+            .dataStore(
+                Components.persistentDataStore(
+                    Redis.dataStore().url("redis://my-redis-host")
+                )
+            )
             .build();
-        
-        LDClient client = new LDClient("YOUR SDK KEY", config);
 
-By default, the store will try to connect to a local Redis instance on port 6379. There are methods in `RedisFeatureStoreBuilder` for changing the configuration options.
+By default, the store will try to connect to a local Redis instance on port 6379.
 
 ## Caching behavior
 
-To reduce traffic to Redis, there is an optional in-memory cache that retains the last known data for a configurable amount of time. This is on by default; to turn it off (and guarantee that the latest feature flag data will always be retrieved from Consul for every flag evaluation), configure the store as follows:
+The LaunchDarkly SDK has a standard caching mechanism for any persistent data store, to reduce database traffic. This is configured through the SDK's `PersistentFeatureStoreBuilder` class as described the SDK documentation. For instance, to specify a cache TTL of 5 minutes:
 
-        RedisFeatureStoreBuilder store = RedisComponents.redisFeatureStore()
-            .caching(FeatureStoreCacheConfig.disabled());
-
-For other ways to control the behavior of the cache, see `RedisFeatureStoreBuilder.caching()`.
+        LDConfig config = new LDConfig.Builder()
+            .dataStore(
+                Components.persistentDataStore(
+                    Redis.dataStore()
+                ).cacheTime(Duration.ofMinutes(5))
+            )
+            .build();
 
 ## About LaunchDarkly
 

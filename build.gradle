@@ -1,12 +1,22 @@
-apply plugin: 'java'
-apply plugin: 'maven-publish'
-apply plugin: 'org.ajoberstar.github-pages'
-apply plugin: 'signing'
-apply plugin: 'idea'
-apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'io.codearte.nexus-staging'
 
-import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+buildscript {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+}
+
+plugins {
+    id "java"
+    id "java-library"
+    id "checkstyle"
+    id "signing"
+    id "maven-publish"
+    id "de.marcphilipp.nexus-publish" version "0.3.0"
+    id "io.codearte.nexus-staging" version "0.21.2"
+    id "org.ajoberstar.git-publish" version "2.1.3"
+    id "idea"
+}
 
 configurations.all {
     // check for updates every build for dependencies with: 'changing: true'
@@ -23,8 +33,8 @@ repositories {
 allprojects {
     group = 'com.launchdarkly'
     version = "${version}"
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 }
 
 ext {
@@ -32,54 +42,27 @@ ext {
     sdkBaseName = "launchdarkly-java-server-sdk-redis-store"
 }
 
+ext.versions = [
+    "sdk": "5.0.0-SNAPSHOT", // the *lowest* version we're compatible with
+    "jedis": "2.9.0",
+    "slf4j": "1.7.21"
+]
+
 ext.libraries = [:]
 
-// Add dependencies to "libraries.internal" that are not exposed in our public API. These
-// will be embedded with shaded names in the uberjar.
-libraries.internal = [
-    // We're not currently shading any dependencies. The Redis client has to be a normal
-    // public dependency because we expose Jedis types in our API.
-]
-
-// Add dependencies to "libraries.external" that are exposed in our public API, or that have
-// global state that must be shared between the SDK and the caller. These are not embedded
-// in the uberjar; the caller must provide them on the classpath at runtime.
-libraries.external = [
-    "com.launchdarkly:launchdarkly-java-server-sdk:4.6.4",
-    "redis.clients:jedis:2.9.0",
-    "org.slf4j:slf4j-api:1.7.21"
-]
-
-// Add dependencies to "libraries.test" that are used only in unit tests.
-libraries.test = [
-    "org.hamcrest:hamcrest-all:1.3",
-    "junit:junit:4.12",
-    "ch.qos.logback:logback-classic:1.1.7",
-    "com.launchdarkly:launchdarkly-java-server-sdk:4.6.4:test" // our unit tests use helper classes from the SDK
-]
-
 dependencies {
-    implementation libraries.internal
-    compileClasspath libraries.external
-    runtime libraries.internal
-    testImplementation libraries.test, libraries.internal, libraries.external
-
-    // Unlike what the name might suggest, the "shadow" configuration specifies dependencies that
-    // should *not* be shaded by the Shadow plugin when we build our shaded jars.
-    shadow libraries.external
-}
-
-buildscript {
-    repositories {
-        jcenter()
-        mavenCentral()
-        mavenLocal()
-    }
-    dependencies {
-        classpath 'org.ajoberstar:gradle-git:1.5.0-rc.1'
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
-        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.8.0"
-    }
+    // We must reference the "thin" version of the SDK jar here because we are also using the SDK's
+    // unit test code, which interacts with SDK implementation code that uses things like Guava -
+    // which are shaded in the default SDK jar.
+    api "com.launchdarkly:launchdarkly-java-server-sdk:${versions.sdk}:thin"
+    api "redis.clients:jedis:${versions.jedis}"
+    api "org.slf4j:slf4j-api:${versions.slf4j}"
+    testCompile "org.hamcrest:hamcrest-all:1.3"
+    testCompile "junit:junit:4.12"
+    testCompile "com.launchdarkly:launchdarkly-java-server-sdk:${versions.sdk}:test" // our unit tests use helper classes from the SDK
+    testRuntime "ch.qos.logback:logback-classic:1.1.7"
+    testRuntime "com.google.guava:guava:28.2-jre" // required by SDK tests, not used in this library itself
+    testRuntime "com.google.code.gson:gson:2.7" // same as above
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
@@ -92,26 +75,8 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
-shadowJar {
-    baseName = sdkBaseName
-    
-    // No classifier means that the shaded jar becomes the default artifact
-    classifier = ''
-
-    manifest {
-        attributes("Implementation-Version": version)
-    }
-}
-
-task relocateShadowJar(type: ConfigureShadowRelocation) {
-    target = tasks.shadowJar
-    prefix = "com.launchdarkly.shaded"
-}
-
-tasks.shadowJar.dependsOn tasks.relocateShadowJar
-
 artifacts {
-    archives sourcesJar, javadocJar, shadowJar
+    archives sourcesJar, javadocJar
 }
 
 test {
@@ -129,67 +94,74 @@ idea {
     }
 }
 
+
 nexusStaging {
     packageGroup = "com.launchdarkly"
-}
-
-def pomConfig = {
-    name 'LaunchDarkly Java SDK Redis integration'
-    packaging 'jar'
-    url 'https://github.com/launchdarkly/java-server-sdk-redis'
-
-    licenses {
-        license {
-            name 'The Apache License, Version 2.0'
-            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-        }
-    }
-
-    developers {
-        developer {
-            id 'jkodumal'
-            name 'John Kodumal'
-            email 'john@launchdarkly.com'
-        }
-    }
-
-    scm {
-        connection 'scm:git:git://github.com/launchdarkly/java-server-sdk-redis.git'
-        developerConnection 'scm:git:ssh:git@github.com:launchdarkly/java-server-sdk-redis.git'
-        url 'https://github.com/launchdarkly/java-server-sdk-redis'
-    }
+    numberOfRetries = 40 // we've seen extremely long delays in closing repositories
 }
 
 publishing {
     publications {
-        shadow(MavenPublication) { publication ->
-            project.shadow.component(publication)
+        mavenJava(MavenPublication) {
+            from components.java
 
-            artifactId = sdkBaseName
+            groupId = 'com.launchdarkly'
+            artifactId = 'launchdarkly-java-server-sdk-redis-store'
+
             artifact sourcesJar
             artifact javadocJar
             
-            pom.withXml {
-                def root = asNode()
-                root.appendNode('description', 'Redis-backed feature store for the LaunchDarkly Java SDK')
-                asNode().children().last() + pomConfig
+            pom {
+                name = 'java-server-sdk-redis'
+                description = 'LaunchDarkly Java SDK Redis integration'
+                url = 'https://github.com/launchdarkly/java-server-sdk-redis'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        name = 'LaunchDarkly'
+                        email = 'team@launchdarkly.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/launchdarkly/java-server-sdk-redis.git'
+                    developerConnection = 'scm:git:ssh:git@github.com:launchdarkly/java-server-sdk-redis.git'
+                }
             }
         }
     }
     repositories {
         mavenLocal()
-        maven {
-            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-            credentials {
-                username ossrhUsername
-                password ossrhPassword
-            }
+    }
+}
+
+nexusPublishing {
+    clientTimeout = java.time.Duration.ofMinutes(2) // we've seen extremely long delays in creating repositories
+    repositories {
+        sonatype {
+            username = ossrhUsername
+            password = ossrhPassword            
         }
     }
 }
 
 signing {
-    sign publishing.publications.shadow
+    sign publishing.publications.mavenJava
+}
+
+tasks.withType(Sign) {
+    onlyIf { !"1".equals(project.findProperty("LD_SKIP_SIGNING")) } // so we can build jars for testing in CI
+}
+
+gitPublish {
+    repoUri = 'git@github.com:launchdarkly/java-sdk-common.git'
+    branch = 'gh-pages'
+    contents {
+        from javadoc
+    }
+    commitMessage = 'publishing javadocs'
 }
