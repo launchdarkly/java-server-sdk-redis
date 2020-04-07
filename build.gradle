@@ -33,13 +33,13 @@ repositories {
 allprojects {
     group = 'com.launchdarkly'
     version = "${version}"
+    archivesBaseName = 'launchdarkly-java-server-sdk-redis-store'
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 }
 
 ext {
     sdkBasePackage = "com.launchdarkly.client.redis"
-    sdkBaseName = "launchdarkly-java-server-sdk-redis-store"
 }
 
 ext.versions = [
