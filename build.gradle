@@ -51,10 +51,7 @@ ext.versions = [
 ext.libraries = [:]
 
 dependencies {
-    // We must reference the "thin" version of the SDK jar here because we are also using the SDK's
-    // unit test code, which interacts with SDK implementation code that uses things like Guava -
-    // which are shaded in the default SDK jar.
-    api "com.launchdarkly:launchdarkly-java-server-sdk:${versions.sdk}:thin"
+    api "com.launchdarkly:launchdarkly-java-server-sdk:${versions.sdk}"
     api "redis.clients:jedis:${versions.jedis}"
     api "org.slf4j:slf4j-api:${versions.slf4j}"
     testCompile "org.hamcrest:hamcrest-all:1.3"
