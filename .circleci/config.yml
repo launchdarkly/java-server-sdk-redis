@@ -1,0 +1,69 @@
+version: 2.1
+
+orbs:
+   win: circleci/windows@1.0.0
+
+workflows:
+  test:
+    jobs:
+      - build-test-linux
+      - build-test-windows
+
+jobs:
+  build-test-linux:
+    docker:
+      - image: circleci/java
+      - image: redis
+    steps:
+      - checkout
+      - run: cp gradle.properties.example gradle.properties
+      - run: ./gradlew test
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/junit/;
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/junit
+      - store_artifacts:
+          path: ~/junit
+
+  build-test-windows:
+    executor:
+      name: win/vs2019
+      shell: powershell.exe
+    steps:
+      - checkout
+      - run:
+          name: install OpenJDK
+          command: |
+            $ProgressPreference = "SilentlyContinue"  # prevents console errors from CircleCI host
+            iwr -outf openjdk.msi https://developers.redhat.com/download-manager/file/java-11-openjdk-11.0.5.10-2.windows.redhat.x86_64.msi
+            Start-Process msiexec.exe -Wait -ArgumentList '/I openjdk.msi /quiet'
+      - run:
+          name: start Redis
+          command: |
+            $ProgressPreference = "SilentlyContinue"
+            iwr -outf redis.zip https://github.com/MicrosoftArchive/redis/releases/download/win-3.0.504/Redis-x64-3.0.504.zip
+            mkdir redis
+            Expand-Archive -Path redis.zip -DestinationPath redis
+            cd redis
+            .\redis-server --service-install
+            .\redis-server --service-start
+            Start-Sleep -s 5
+            .\redis-cli ping
+      - run:
+          name: build and test
+          command: |
+            cp gradle.properties.example gradle.properties
+            .\gradlew.bat --no-daemon test  # must use --no-daemon because CircleCI in Windows will hang if there's a daemon running
+      - run:
+          name: save test results
+          command: |
+            mkdir .\junit
+            cp build/test-results/test/*.xml junit
+      - store_test_results:
+          path: .\junit
+      - store_artifacts:
+          path: .\junit
