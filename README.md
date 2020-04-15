@@ -48,7 +48,7 @@ By default, the store will try to connect to a local Redis instance on port 6379
 
 ## Caching behavior
 
-The LaunchDarkly SDK has a standard caching mechanism for any persistent data store, to reduce database traffic. This is configured through the SDK's `PersistentFeatureStoreBuilder` class as described the SDK documentation. For instance, to specify a cache TTL of 5 minutes:
+The LaunchDarkly SDK has a standard caching mechanism for any persistent data store, to reduce database traffic. This is configured through the SDK's `PersistentDataStoreBuilder` class as described the SDK documentation. For instance, to specify a cache TTL of 5 minutes:
 
         LDConfig config = new LDConfig.Builder()
             .dataStore(
