@@ -155,7 +155,7 @@ tasks.withType(Sign) {
 }
 
 gitPublish {
-    repoUri = 'git@github.com:launchdarkly/java-sdk-common.git'
+    repoUri = 'git@github.com:launchdarkly/java-server-sdk-redis.git'
     branch = 'gh-pages'
     contents {
         from javadoc
