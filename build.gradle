@@ -43,7 +43,7 @@ ext {
 }
 
 ext.versions = [
-    "sdk": "5.0.0-SNAPSHOT", // the *lowest* version we're compatible with
+    "sdk": "5.0.0-rc1", // the *lowest* version we're compatible with
     "jedis": "2.9.0",
     "slf4j": "1.7.21"
 ]
