@@ -23,7 +23,7 @@ import redis.clients.jedis.Transaction;
 import redis.clients.util.JedisURIHelper;
 
 final class RedisDataStoreImpl implements PersistentDataStore {
-  private static final Logger logger = LoggerFactory.getLogger(RedisDataStoreImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger("com.launchdarkly.sdk.server.LDClient.DataStore.Redis");
 
   private final JedisPool pool;
   private final String prefix;
