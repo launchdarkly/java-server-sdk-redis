@@ -13,12 +13,12 @@ For more information, see also: [Using a persistent feature store](https://docs.
 
 This assumes that you have already installed the LaunchDarkly Java SDK.
 
-1. Add this library to your project:
+1. Add this library to your project (substitute the latest version number for `XXX`):
 
         <dependency>
           <groupId>com.launchdarkly</groupId>
           <artifactId>launchdarkly-java-server-sdk-redis-store</artifactId>
-          <version>1.0.0</version>
+          <version>XXX</version>
         </dependency>
 
 2. The Redis client library (Jedis) should be pulled in automatically if you do not specify a dependency for it. If you want to use a different version, you may add your own dependency:
