@@ -18,6 +18,7 @@ jobs:
       - checkout
       - run: cp gradle.properties.example gradle.properties
       - run: ./gradlew test
+      - run: ./gradlew javadoc
       - run:
           name: Save test results
           command: |
