@@ -20,7 +20,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Transaction;
-import redis.clients.util.JedisURIHelper;
+import redis.clients.jedis.util.JedisURIHelper;
 
 final class RedisDataStoreImpl implements PersistentDataStore {
   private static final Logger logger = LoggerFactory.getLogger("com.launchdarkly.sdk.server.LDClient.DataStore.Redis");
@@ -135,7 +135,7 @@ final class RedisDataStoreImpl implements PersistentDataStore {
         Transaction tx = jedis.multi();
         tx.hset(baseKey, key, jsonOrPlaceholder(kind, newItem));
         List<Object> result = tx.exec();
-        if (result.isEmpty()) {
+        if (result == null || result.isEmpty()) {
           // if exec failed, it means the watch was triggered and we should retry
           logger.debug("Concurrent modification detected, retrying");
           continue;
