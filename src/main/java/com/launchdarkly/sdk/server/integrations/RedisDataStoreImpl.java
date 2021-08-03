@@ -134,7 +134,7 @@ final class RedisDataStoreImpl implements PersistentDataStore {
         Transaction tx = jedis.multi();
         tx.hset(baseKey, key, jsonOrPlaceholder(kind, newItem));
         List<Object> result = tx.exec();
-        if (result.isEmpty()) {
+        if (result == null || result.isEmpty()) {
           // if exec failed, it means the watch was triggered and we should retry
           logger.debug("Concurrent modification detected, retrying");
           continue;
