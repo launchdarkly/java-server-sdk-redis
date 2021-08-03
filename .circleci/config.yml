@@ -7,16 +7,45 @@ workflows:
   test:
     jobs:
       - build-test-linux
+      - build-test-linux-with-other-jedis-version:
+          name: test with Jedis 3.x
+          jedis-version: 3.0.0
       - build-test-windows
 
 jobs:
   build-test-linux:
     docker:
-      - image: circleci/java
+      - image: cimg/openjdk:8
       - image: redis
     steps:
       - checkout
       - run: cp gradle.properties.example gradle.properties
+      - run: ./gradlew test
+      - run: ./gradlew javadoc
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/junit/;
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/junit
+      - store_artifacts:
+          path: ~/junit
+
+  build-test-linux-with-other-jedis-version:
+    parameters:
+      jedis-version:
+        type: string
+    docker:
+      - image: cimg/openjdk:8
+      - image: redis
+    steps:
+      - checkout
+      - run: cp gradle.properties.example gradle.properties
+      - run:
+          name: Edit build.gradle to change Jedis version
+          command: sed -i.bak "s#\"jedis\":.*\"[0-9.]*\"#\"jedis\": \"<<parameters.jedis-version>\"#" build.gradle
       - run: ./gradlew test
       - run: ./gradlew javadoc
       - run:

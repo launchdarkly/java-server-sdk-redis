@@ -29,6 +29,8 @@ This assumes that you have already installed the LaunchDarkly Java SDK.
           <version>2.9.0</version>
         </dependency>
 
+    This library is compatible with Jedis 2.x versions greater than or equal to 2.9.0, and also with Jedis 3.x.
+
 3. Import the LaunchDarkly package and the package for this library:
 
         import com.launchdarkly.sdk.server.*;

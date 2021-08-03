@@ -20,7 +20,6 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Transaction;
-import redis.clients.util.JedisURIHelper;
 
 final class RedisDataStoreImpl implements PersistentDataStore {
   private static final Logger logger = LoggerFactory.getLogger("com.launchdarkly.sdk.server.LDClient.DataStore.Redis");
@@ -35,8 +34,8 @@ final class RedisDataStoreImpl implements PersistentDataStore {
     // to decompose the URI.
     String host = builder.uri.getHost();
     int port = builder.uri.getPort();
-    String password = builder.password == null ? JedisURIHelper.getPassword(builder.uri) : builder.password;
-    int database = builder.database == null ? JedisURIHelper.getDBIndex(builder.uri): builder.database.intValue();
+    String password = builder.password == null ? RedisURIComponents.getPassword(builder.uri) : builder.password;
+    int database = builder.database == null ? RedisURIComponents.getDBIndex(builder.uri): builder.database.intValue();
     boolean tls = builder.tls || builder.uri.getScheme().equals("rediss");
     
     String extra = tls ? " with TLS" : "";
