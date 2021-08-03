@@ -45,7 +45,8 @@ jobs:
       - run: cp gradle.properties.example gradle.properties
       - run:
           name: Edit build.gradle to change Jedis version
-          command: sed -i.bak "s#\"jedis\":.*\"[0-9.]*\"#\"jedis\": \"<<parameters.jedis-version>\"#" build.gradle
+          command: |
+            sed -i.bak 's#"jedis":.*"[0-9.]*"#"jedis":"<<parameters.jedis-version>"#' build.gradle
       - run: ./gradlew test
       - run: ./gradlew javadoc
       - run:
