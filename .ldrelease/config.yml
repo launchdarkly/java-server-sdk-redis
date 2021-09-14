@@ -1,3 +1,4 @@
+version: 2
 
 publications:
   - url: https://oss.sonatype.org/content/groups/public/com/launchdarkly/launchdarkly-java-server-sdk-redis-store/
@@ -5,10 +6,13 @@ publications:
   - url: https://javadoc.io/doc/com.launchdarkly/launchdarkly-java-server-sdk-redis-store
     description: documentation (javadoc.io)
 
-template:
-  name: gradle
-  skip:
-    - test  # don't try to run unit tests in the Releaser environment, since they require Redis
+jobs:
+  - docker:
+      image: gradle:6.8.3-jdk11
+    template:
+      name: gradle
+    skip:
+      - test  # don't try to run unit tests in the Releaser environment, since they require Redis
 
 documentation:
-  githubPages: true
+  gitHubPages: true
