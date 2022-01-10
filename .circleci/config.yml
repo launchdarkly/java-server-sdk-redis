@@ -49,7 +49,7 @@ jobs:
           paths:
             - classes
 
-  build-test-linux:
+  test-linux:
     parameters:
       docker-image:
         type: string
