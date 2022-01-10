@@ -83,6 +83,10 @@ test {
     }
 }
 
+checkstyle {
+    configFile = file("${project.rootDir}/checkstyle.xml")
+}
+
 idea {
     module {
         downloadJavadoc = true
