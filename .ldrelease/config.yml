@@ -8,11 +8,11 @@ publications:
 
 jobs:
   - docker:
-      image: gradle:6.8.3-jdk11
+      image: gradle:7.3.3-jdk8
     template:
       name: gradle
-    skip:
-      - test  # don't try to run unit tests in the Releaser environment, since they require Redis
+      skip:
+        - test  # don't try to run unit tests in the Releaser environment, since they require Redis
 
 documentation:
   gitHubPages: true
