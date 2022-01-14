@@ -1,8 +1,10 @@
 package com.launchdarkly.sdk.server.integrations;
 
 import com.launchdarkly.sdk.LDValue;
-import com.launchdarkly.sdk.server.LDConfig;
+import com.launchdarkly.sdk.server.Components;
 import com.launchdarkly.sdk.server.interfaces.BasicConfiguration;
+import com.launchdarkly.sdk.server.interfaces.BigSegmentStore;
+import com.launchdarkly.sdk.server.interfaces.BigSegmentStoreFactory;
 import com.launchdarkly.sdk.server.interfaces.ClientContext;
 import com.launchdarkly.sdk.server.interfaces.DiagnosticDescription;
 import com.launchdarkly.sdk.server.interfaces.PersistentDataStore;
@@ -15,32 +17,49 @@ import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Protocol;
 
 /**
- * A <a href="http://en.wikipedia.org/wiki/Builder_pattern">builder</a> for configuring the Redis-based persistent data store.
+ * A <a href="http://en.wikipedia.org/wiki/Builder_pattern">builder</a> for configuring the
+ * Redis-based persistent data store.
  * <p>
- * Obtain an instance of this class by calling {@link Redis#dataStore()}. After calling its methods
- * to specify any desired custom settings, wrap it in a {@link com.launchdarkly.sdk.server.integrations.PersistentDataStoreBuilder}
- * by calling {@code Components.persistentDataStore()}, then pass the result into the SDK configuration with
- * {@link com.launchdarkly.sdk.server.LDConfig.Builder#dataStore(com.launchdarkly.sdk.server.interfaces.DataStoreFactory)}.
- * You do not need to call {@link #createPersistentDataStore(ClientContext)} yourself to build the actual data store; that
- * will be done by the SDK.
- * <p>
- * Builder calls can be chained, for example:
- *
+ * This can be used either for the main data store that holds feature flag data, or for the Big
+ * Segment store, or both. If you are using both, they do not have to have the same parameters.
+ * For instance, in this example the main data store uses a Redis host called "host1" and the Big
+ * Segment store uses a Redis host called "host2":
  * <pre><code>
  *     LDConfig config = new LDConfig.Builder()
  *         .dataStore(
  *             Components.persistentDataStore(
- *                 Redis.dataStore()
- *                     .url("redis://my-redis-host")
- *                     .database(1)
+ *                 Redis.dataStore().uri(URI.create("redis://host1:6379")
+ *             )
+ *         )
+ *         .bigSegments(
+ *             Components.bigSegments(
+ *                 Redis.dataStore().uri(URI.create("redis://host2:6379")
+ *             )
+ *         )
+ *         .build();
+ * </code></pre>
+ * <p>
+ * Note that the builder is passed to one of two methods,
+ * {@link Components#persistentDataStore(PersistentDataStoreFactory)} or
+ * {@link Components#bigSegments(BigSegmentStoreFactory)}, depending on the context in which it is
+ * being used. This is because each of those contexts has its own additional configuration options
+ * that are unrelated to the Redis options. For instance, the
+ * {@link Components#persistentDataStore(PersistentDataStoreFactory)} builder has options for
+ * caching:
+ * <pre><code>
+ *     LDConfig config = new LDConfig.Builder()
+ *         .dataStore(
+ *             Components.persistentDataStore(
+ *                 Redis.dataStore().uri(URI.create("redis://my-redis-host"))
  *             ).cacheSeconds(15)
  *         )
  *         .build();
  * </code></pre>
- * 
+ *
  * @since 4.12.0
  */
-public final class RedisDataStoreBuilder implements PersistentDataStoreFactory, DiagnosticDescription {
+public final class RedisDataStoreBuilder
+    implements PersistentDataStoreFactory, BigSegmentStoreFactory, DiagnosticDescription {
   /**
    * The default value for the Redis URI: {@code redis://localhost:6379}
    */
@@ -164,13 +183,14 @@ public final class RedisDataStoreBuilder implements PersistentDataStoreFactory, 
     return this;
   }
 
-  /**
-   * Called internally by the SDK to create the actual data store instance.
-   * @return the data store configured by this builder
-   */
   @Override
   public PersistentDataStore createPersistentDataStore(ClientContext context) {
     return new RedisDataStoreImpl(this);
+  }
+
+  @Override
+  public BigSegmentStore createBigSegmentStore(ClientContext context) {
+    return new RedisBigSegmentStoreImpl(this);
   }
 
   @Override
