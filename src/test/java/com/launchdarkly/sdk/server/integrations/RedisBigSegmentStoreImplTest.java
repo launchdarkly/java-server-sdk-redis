@@ -1,21 +1,12 @@
 package com.launchdarkly.sdk.server.integrations;
 
-import static org.junit.Assume.assumeTrue;
-
 import com.launchdarkly.sdk.server.interfaces.BigSegmentStoreFactory;
 import com.launchdarkly.sdk.server.interfaces.BigSegmentStoreTypes;
-
-import org.junit.BeforeClass;
 
 import redis.clients.jedis.Jedis;
 
 @SuppressWarnings("javadoc")
 public class RedisBigSegmentStoreImplTest extends BigSegmentStoreTestBase {
-  @BeforeClass
-  public static void maybeSkipDatabaseTests() {
-    String skipParam = System.getenv("LD_SKIP_DATABASE_TESTS");
-    assumeTrue(skipParam == null || skipParam.equals(""));
-  }
 
   @Override
   protected BigSegmentStoreFactory makeStore(String prefix) {
