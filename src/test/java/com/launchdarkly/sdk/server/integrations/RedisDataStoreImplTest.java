@@ -1,14 +1,8 @@
 package com.launchdarkly.sdk.server.integrations;
 
-import com.launchdarkly.sdk.server.integrations.Redis;
-import com.launchdarkly.sdk.server.integrations.RedisDataStoreImpl;
 import com.launchdarkly.sdk.server.integrations.RedisDataStoreImpl.UpdateListener;
 
-import org.junit.BeforeClass;
-
 import java.net.URI;
-
-import static org.junit.Assume.assumeTrue;
 
 import redis.clients.jedis.Jedis;
 
@@ -16,12 +10,6 @@ import redis.clients.jedis.Jedis;
 public class RedisDataStoreImplTest extends PersistentDataStoreTestBase<RedisDataStoreImpl> {
 
   private static final URI REDIS_URI = URI.create("redis://localhost:6379");
-  
-  @BeforeClass
-  public static void maybeSkipDatabaseTests() {
-    String skipParam = System.getenv("LD_SKIP_DATABASE_TESTS");
-    assumeTrue(skipParam == null || skipParam.equals(""));
-  }
   
   @Override
   protected RedisDataStoreImpl makeStore() {

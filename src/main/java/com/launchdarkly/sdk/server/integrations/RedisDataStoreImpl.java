@@ -7,64 +7,21 @@ import com.launchdarkly.sdk.server.interfaces.DataStoreTypes.KeyedItems;
 import com.launchdarkly.sdk.server.interfaces.DataStoreTypes.SerializedItemDescriptor;
 import com.launchdarkly.sdk.server.interfaces.PersistentDataStore;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Transaction;
 
-final class RedisDataStoreImpl implements PersistentDataStore {
-  private static final Logger logger = LoggerFactory.getLogger("com.launchdarkly.sdk.server.LDClient.DataStore.Redis");
+final class RedisDataStoreImpl extends RedisStoreImplBase implements PersistentDataStore {
+  private static final String LOGGER_NAME = "com.launchdarkly.sdk.server.LDClient.DataStore.Redis";
 
-  private final JedisPool pool;
-  private final String prefix;
   private UpdateListener updateListener;
   
   RedisDataStoreImpl(RedisDataStoreBuilder builder) {
-    // There is no builder for JedisPool, just a large number of constructor overloads. Unfortunately,
-    // the overloads that accept a URI do not accept the other parameters we need to set, so we need
-    // to decompose the URI.
-    String host = builder.uri.getHost();
-    int port = builder.uri.getPort();
-    String password = builder.password == null ? RedisURIComponents.getPassword(builder.uri) : builder.password;
-    int database = builder.database == null ? RedisURIComponents.getDBIndex(builder.uri): builder.database.intValue();
-    boolean tls = builder.tls || builder.uri.getScheme().equals("rediss");
-    
-    String extra = tls ? " with TLS" : "";
-    if (password != null) {
-      extra = extra + (extra.isEmpty() ? " with" : " and") + " password";
-    }
-    logger.info(String.format("Connecting to Redis feature store at %s:%d/%d%s", host, port, database, extra));
-
-    JedisPoolConfig poolConfig = (builder.poolConfig != null) ? builder.poolConfig : new JedisPoolConfig();    
-    JedisPool pool = new JedisPool(poolConfig,
-        host,
-        port,
-        (int)builder.connectTimeout.toMillis(),
-        (int)builder.socketTimeout.toMillis(),
-        password,
-        database,
-        null, // clientName
-        tls,
-        null, // sslSocketFactory
-        null, // sslParameters
-        null  // hostnameVerifier
-        );
-
-    String prefix = (builder.prefix == null || builder.prefix.isEmpty()) ?
-        RedisDataStoreBuilder.DEFAULT_PREFIX :
-        builder.prefix;
-    
-    this.pool = pool;
-    this.prefix = prefix;
+    super(builder, LOGGER_NAME);
   }
   
   @Override
@@ -165,12 +122,6 @@ final class RedisDataStoreImpl implements PersistentDataStore {
     } catch (Exception e) { // don't care about exception class, since any exception means the Redis request couldn't be made
       return false;
     }
-  }
-  
-  @Override
-  public void close() throws IOException {
-    logger.info("Closing LaunchDarkly RedisFeatureStore");
-    pool.destroy();
   }
 
   // package-private for testing
