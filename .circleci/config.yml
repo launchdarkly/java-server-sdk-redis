@@ -14,4 +14,3 @@ workflows:
           filters:
             branches: 
               only: not-gh-pages
-
