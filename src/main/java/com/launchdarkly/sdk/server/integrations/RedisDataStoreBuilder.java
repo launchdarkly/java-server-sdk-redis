@@ -185,12 +185,12 @@ public final class RedisDataStoreBuilder
 
   @Override
   public PersistentDataStore createPersistentDataStore(ClientContext context) {
-    return new RedisDataStoreImpl(this);
+    return new RedisDataStoreImpl(this, context.getBasic().getBaseLogger());
   }
 
   @Override
   public BigSegmentStore createBigSegmentStore(ClientContext context) {
-    return new RedisBigSegmentStoreImpl(this);
+    return new RedisBigSegmentStoreImpl(this, context.getBasic().getBaseLogger());
   }
 
   @Override
