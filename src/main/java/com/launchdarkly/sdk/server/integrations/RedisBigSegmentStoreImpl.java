@@ -1,5 +1,6 @@
 package com.launchdarkly.sdk.server.integrations;
 
+import com.launchdarkly.logging.LDLogger;
 import com.launchdarkly.sdk.server.interfaces.BigSegmentStore;
 import com.launchdarkly.sdk.server.interfaces.BigSegmentStoreTypes;
 
@@ -14,8 +15,8 @@ final class RedisBigSegmentStoreImpl extends RedisStoreImplBase implements BigSe
   private final String includedKeyPrefix;
   private final String excludedKeyPrefix;
 
-  RedisBigSegmentStoreImpl(RedisDataStoreBuilder builder) {
-    super(builder, LOGGER_NAME);
+  RedisBigSegmentStoreImpl(RedisDataStoreBuilder builder, LDLogger baseLogger) {
+    super(builder, baseLogger.subLogger("BigSegments").subLogger("Redis"));
     syncTimeKey = prefix + ":big_segments_synchronized_on";
     includedKeyPrefix = prefix + ":big_segment_include:";
     excludedKeyPrefix = prefix + ":big_segment_exclude:";

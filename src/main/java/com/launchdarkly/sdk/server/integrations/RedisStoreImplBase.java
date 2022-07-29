@@ -1,7 +1,6 @@
 package com.launchdarkly.sdk.server.integrations;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.launchdarkly.logging.LDLogger;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -10,12 +9,13 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 abstract class RedisStoreImplBase implements Closeable {
-  protected final Logger logger;
+  protected final LDLogger logger;
   protected final JedisPool pool;
   protected final String prefix;
 
-  protected RedisStoreImplBase(RedisDataStoreBuilder builder, String loggerName) {
-    logger = LoggerFactory.getLogger(loggerName);
+  protected RedisStoreImplBase(RedisDataStoreBuilder builder, LDLogger logger) {
+    this.logger = logger;
+
     // There is no builder for JedisPool, just a large number of constructor overloads. Unfortunately,
     // the overloads that accept a URI do not accept the other parameters we need to set, so we need
     // to decompose the URI.
@@ -29,7 +29,7 @@ abstract class RedisStoreImplBase implements Closeable {
     if (password != null) {
       extra = extra + (extra.isEmpty() ? " with" : " and") + " password";
     }
-    logger.info(String.format("Using Redis data store at %s:%d/%d%s", host, port, database, extra));
+    logger.info("Using Redis data store at {}:{}/{}{}", host, port, database, extra);
 
     JedisPoolConfig poolConfig = (builder.poolConfig != null) ? builder.poolConfig : new JedisPoolConfig();
 

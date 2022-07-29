@@ -2,6 +2,7 @@ package com.launchdarkly.sdk.server.integrations;
 
 import com.launchdarkly.sdk.server.interfaces.BigSegmentStoreFactory;
 import com.launchdarkly.sdk.server.interfaces.BigSegmentStoreTypes;
+import com.launchdarkly.sdk.server.interfaces.ClientContext;
 
 import redis.clients.jedis.Jedis;
 

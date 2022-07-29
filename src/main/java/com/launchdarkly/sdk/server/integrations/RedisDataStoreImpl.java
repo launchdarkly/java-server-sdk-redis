@@ -1,5 +1,6 @@
 package com.launchdarkly.sdk.server.integrations;
 
+import com.launchdarkly.logging.LDLogger;
 import com.launchdarkly.sdk.server.interfaces.DataStoreTypes.DataKind;
 import com.launchdarkly.sdk.server.interfaces.DataStoreTypes.FullDataSet;
 import com.launchdarkly.sdk.server.interfaces.DataStoreTypes.ItemDescriptor;
@@ -16,12 +17,10 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Transaction;
 
 final class RedisDataStoreImpl extends RedisStoreImplBase implements PersistentDataStore {
-  private static final String LOGGER_NAME = "com.launchdarkly.sdk.server.LDClient.DataStore.Redis";
-
   private UpdateListener updateListener;
   
-  RedisDataStoreImpl(RedisDataStoreBuilder builder) {
-    super(builder, LOGGER_NAME);
+  RedisDataStoreImpl(RedisDataStoreBuilder builder, LDLogger baseLogger) {
+    super(builder, baseLogger.subLogger("DataStore").subLogger("Redis"));
   }
   
   @Override

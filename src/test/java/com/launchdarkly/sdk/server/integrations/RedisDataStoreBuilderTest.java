@@ -42,7 +42,7 @@ public class RedisDataStoreBuilderTest {
   @Test
   public void testDatabaseConfigured() {
     RedisDataStoreBuilder conf = Redis.dataStore().database(3);
-    assertEquals(new Integer(3), conf.database);
+    assertEquals(Integer.valueOf(3), conf.database);
   }
   
   @Test
