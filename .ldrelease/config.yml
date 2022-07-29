@@ -6,6 +6,10 @@ publications:
   - url: https://javadoc.io/doc/com.launchdarkly/launchdarkly-java-server-sdk-redis-store
     description: documentation (javadoc.io)
 
+branches:
+  - name: main
+  - name: 1.x
+
 jobs:
   - docker:
       image: gradle:7.3.3-jdk8
