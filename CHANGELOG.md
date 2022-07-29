@@ -2,6 +2,11 @@
 
 All notable changes to the LaunchDarkly Java SDK Redis integration will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org).
 
+## [2.0.0] - 2022-07-29
+This release updates the package to use the new logging mechanism that was introduced in version 5.10.0 of the LaunchDarkly Java SDK, so that log output from the Redis integration is handled in whatever way was specified by the SDK's logging configuration.
+
+This version of the package will not work with SDK versions earlier than 5.10.0; that is the only reason for the 2.0.0 major version increment. The functionality of the package is otherwise unchanged, and there are no API changes.
+
 ## [1.1.0] - 2022-01-28
 ### Added:
 - Added support for Big Segments. An Early Access Program for creating and syncing Big Segments from customer data platforms is available to enterprise customers.
