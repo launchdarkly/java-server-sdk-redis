@@ -19,7 +19,7 @@ import redis.clients.jedis.Transaction;
 final class RedisDataStoreImpl extends RedisStoreImplBase implements PersistentDataStore {
   private UpdateListener updateListener;
   
-  RedisDataStoreImpl(RedisStoreBuilder builder, LDLogger baseLogger) {
+  RedisDataStoreImpl(RedisStoreBuilder<PersistentDataStore> builder, LDLogger baseLogger) {
     super(builder, baseLogger.subLogger("DataStore").subLogger("Redis"));
   }
   

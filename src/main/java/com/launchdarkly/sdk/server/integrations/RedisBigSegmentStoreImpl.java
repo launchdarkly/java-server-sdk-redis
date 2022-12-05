@@ -13,7 +13,7 @@ final class RedisBigSegmentStoreImpl extends RedisStoreImplBase implements BigSe
   private final String includedKeyPrefix;
   private final String excludedKeyPrefix;
 
-  RedisBigSegmentStoreImpl(RedisStoreBuilder builder, LDLogger baseLogger) {
+  RedisBigSegmentStoreImpl(RedisStoreBuilder<BigSegmentStore> builder, LDLogger baseLogger) {
     super(builder, baseLogger.subLogger("BigSegments").subLogger("Redis"));
     syncTimeKey = prefix + ":big_segments_synchronized_on";
     includedKeyPrefix = prefix + ":big_segment_include:";

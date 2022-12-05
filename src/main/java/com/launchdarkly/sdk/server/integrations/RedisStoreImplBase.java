@@ -13,7 +13,7 @@ abstract class RedisStoreImplBase implements Closeable {
   protected final JedisPool pool;
   protected final String prefix;
 
-  protected RedisStoreImplBase(RedisStoreBuilder builder, LDLogger logger) {
+  protected RedisStoreImplBase(RedisStoreBuilder<?> builder, LDLogger logger) {
     this.logger = logger;
 
     // There is no builder for JedisPool, just a large number of constructor overloads. Unfortunately,
