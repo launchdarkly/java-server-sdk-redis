@@ -5,7 +5,7 @@
 
 This library provides a Redis-backed persistence mechanism (feature store) for the [LaunchDarkly Java SDK](https://github.com/launchdarkly/java-server-sdk), replacing the default in-memory feature store. The Redis API implementation it uses is [Jedis](https://github.com/xetorthio/jedis).
 
-This version of the library requires at least version 5.10.0 of the LaunchDarkly Java SDK; for earlier 5.x versions of the Java SDK, use the 1.x version of this library. The minimum Java version is 8.
+This version of the library requires at least version 6.0.0 of the LaunchDarkly Java SDK; for versions of the library to use with earlier SDK versions, see the changelog. The minimum Java version is 8.
 
 For more information, see also: [Using Redis as a persistent feature store](https://docs.launchdarkly.com/sdk/features/storing-data/redis#java).
 

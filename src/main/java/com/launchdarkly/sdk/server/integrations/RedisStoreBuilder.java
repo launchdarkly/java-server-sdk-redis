@@ -2,13 +2,11 @@ package com.launchdarkly.sdk.server.integrations;
 
 import com.launchdarkly.sdk.LDValue;
 import com.launchdarkly.sdk.server.Components;
-import com.launchdarkly.sdk.server.interfaces.BasicConfiguration;
-import com.launchdarkly.sdk.server.interfaces.BigSegmentStore;
-import com.launchdarkly.sdk.server.interfaces.BigSegmentStoreFactory;
-import com.launchdarkly.sdk.server.interfaces.ClientContext;
-import com.launchdarkly.sdk.server.interfaces.DiagnosticDescription;
-import com.launchdarkly.sdk.server.interfaces.PersistentDataStore;
-import com.launchdarkly.sdk.server.interfaces.PersistentDataStoreFactory;
+import com.launchdarkly.sdk.server.subsystems.BigSegmentStore;
+import com.launchdarkly.sdk.server.subsystems.ClientContext;
+import com.launchdarkly.sdk.server.subsystems.ComponentConfigurer;
+import com.launchdarkly.sdk.server.subsystems.DiagnosticDescription;
+import com.launchdarkly.sdk.server.subsystems.PersistentDataStore;
 
 import java.net.URI;
 import java.time.Duration;
@@ -18,12 +16,17 @@ import redis.clients.jedis.Protocol;
 
 /**
  * A <a href="http://en.wikipedia.org/wiki/Builder_pattern">builder</a> for configuring the
- * Redis-based persistent data store.
+ * Redis-based persistent data store and/or Big Segment store.
  * <p>
- * This can be used either for the main data store that holds feature flag data, or for the Big
- * Segment store, or both. If you are using both, they do not have to have the same parameters.
- * For instance, in this example the main data store uses a Redis host called "host1" and the Big
- * Segment store uses a Redis host called "host2":
+ * Both {@link Redis#dataStore()} and {@link Redis#bigSegmentStore()} return instances of
+ * this class. You can use methods of the builder to specify any non-default Redis options
+ * you may want, before passing the builder to either {@link Components#persistentDataStore(ComponentConfigurer)}
+ * or {@link Components#bigSegments(ComponentConfigurer)} as appropriate. The two types of
+ * stores are independent of each other; you do not need a Big Segment store if you are not
+ * using the Big Segments feature, and you do not need to use the same database for both.
+ *
+ * In this example, the main data store uses a Redis host called "host1", and the Big Segment
+ * store uses a Redis host called "host2":
  * <pre><code>
  *     LDConfig config = new LDConfig.Builder()
  *         .dataStore(
@@ -39,13 +42,10 @@ import redis.clients.jedis.Protocol;
  *         .build();
  * </code></pre>
  * <p>
- * Note that the builder is passed to one of two methods,
- * {@link Components#persistentDataStore(PersistentDataStoreFactory)} or
- * {@link Components#bigSegments(BigSegmentStoreFactory)}, depending on the context in which it is
- * being used. This is because each of those contexts has its own additional configuration options
- * that are unrelated to the Redis options. For instance, the
- * {@link Components#persistentDataStore(PersistentDataStoreFactory)} builder has options for
- * caching:
+ * Note that the SDK also has its own options related to data storage that are configured
+ * at a different level, because they are independent of what database is being used. For
+ * instance, the builder returned by {@link Components#persistentDataStore(ComponentConfigurer)}
+ * has options for caching:
  * <pre><code>
  *     LDConfig config = new LDConfig.Builder()
  *         .dataStore(
@@ -55,11 +55,12 @@ import redis.clients.jedis.Protocol;
  *         )
  *         .build();
  * </code></pre>
+ * 
+ * @param <T> the component type that this builder is being used for 
  *
- * @since 4.12.0
+ * @since 5.0.0
  */
-public final class RedisDataStoreBuilder
-    implements PersistentDataStoreFactory, BigSegmentStoreFactory, DiagnosticDescription {
+public abstract class RedisStoreBuilder<T> implements ComponentConfigurer<T>, DiagnosticDescription {
   /**
    * The default value for the Redis URI: {@code redis://localhost:6379}
    */
@@ -80,7 +81,7 @@ public final class RedisDataStoreBuilder
   JedisPoolConfig poolConfig = null;
 
   // These constructors are called only from Implementations
-  RedisDataStoreBuilder() {
+  RedisStoreBuilder() {
   }
   
   /**
@@ -92,7 +93,7 @@ public final class RedisDataStoreBuilder
    * @param database the database number, or null to fall back to the URI or the default
    * @return the builder
    */
-  public RedisDataStoreBuilder database(Integer database) {
+  public RedisStoreBuilder<T> database(Integer database) {
     this.database = database;
     return this;
   }
@@ -106,7 +107,7 @@ public final class RedisDataStoreBuilder
    * @param password the password
    * @return the builder
    */
-  public RedisDataStoreBuilder password(String password) {
+  public RedisStoreBuilder<T> password(String password) {
     this.password = password;
     return this;
   }
@@ -121,7 +122,7 @@ public final class RedisDataStoreBuilder
    * @param tls true to enable TLS
    * @return the builder
    */
-  public RedisDataStoreBuilder tls(boolean tls) {
+  public RedisStoreBuilder<T> tls(boolean tls) {
     this.tls = tls;
     return this;
   }
@@ -132,7 +133,7 @@ public final class RedisDataStoreBuilder
    * @param redisUri the URI of the Redis host
    * @return the builder
    */
-  public RedisDataStoreBuilder uri(URI redisUri) {
+  public RedisStoreBuilder<T> uri(URI redisUri) {
     this.uri = redisUri;
     return this;
   }
@@ -143,7 +144,7 @@ public final class RedisDataStoreBuilder
    * @param prefix the namespace prefix
    * @return the builder
    */
-  public RedisDataStoreBuilder prefix(String prefix) {
+  public RedisStoreBuilder<T> prefix(String prefix) {
     this.prefix = prefix;
     return this;
   }
@@ -154,7 +155,7 @@ public final class RedisDataStoreBuilder
    * @param poolConfig the Jedis pool configuration.
    * @return the builder
    */
-  public RedisDataStoreBuilder poolConfig(JedisPoolConfig poolConfig) {
+  public RedisStoreBuilder<T> poolConfig(JedisPoolConfig poolConfig) {
     this.poolConfig = poolConfig;
     return this;
   }
@@ -166,7 +167,7 @@ public final class RedisDataStoreBuilder
    * @param connectTimeout the timeout
    * @return the builder
    */
-  public RedisDataStoreBuilder connectTimeout(Duration connectTimeout) {
+  public RedisStoreBuilder<T> connectTimeout(Duration connectTimeout) {
     this.connectTimeout = connectTimeout == null ? Duration.ofMillis(Protocol.DEFAULT_TIMEOUT) : connectTimeout;
     return this;
   }
@@ -178,23 +179,27 @@ public final class RedisDataStoreBuilder
    * @param socketTimeout the socket timeout
    * @return the builder
    */
-  public RedisDataStoreBuilder socketTimeout(Duration socketTimeout) {
+  public RedisStoreBuilder<T> socketTimeout(Duration socketTimeout) {
     this.socketTimeout = socketTimeout == null ? Duration.ofMillis(Protocol.DEFAULT_TIMEOUT) : socketTimeout;
     return this;
   }
 
   @Override
-  public PersistentDataStore createPersistentDataStore(ClientContext context) {
-    return new RedisDataStoreImpl(this, context.getBasic().getBaseLogger());
-  }
-
-  @Override
-  public BigSegmentStore createBigSegmentStore(ClientContext context) {
-    return new RedisBigSegmentStoreImpl(this, context.getBasic().getBaseLogger());
-  }
-
-  @Override
-  public LDValue describeConfiguration(BasicConfiguration config) {
+  public LDValue describeConfiguration(ClientContext clientContext) {
     return LDValue.of("Redis");
+  }
+  
+  static final class ForDataStore extends RedisStoreBuilder<PersistentDataStore> {
+    @Override
+    public PersistentDataStore build(ClientContext clientContext) {
+      return new RedisDataStoreImpl(this, clientContext.getBaseLogger());
+    }
+  }
+  
+  static final class ForBigSegments extends RedisStoreBuilder<BigSegmentStore> {
+    @Override
+    public BigSegmentStore build(ClientContext clientContext) {
+      return new RedisBigSegmentStoreImpl(this, clientContext.getBaseLogger());
+    }
   }
 }

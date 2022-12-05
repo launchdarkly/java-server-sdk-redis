@@ -2,6 +2,9 @@ package com.launchdarkly.sdk.server.integrations;
 
 import com.launchdarkly.sdk.server.Components;
 import com.launchdarkly.sdk.server.interfaces.PersistentDataStoreFactory;
+import com.launchdarkly.sdk.server.subsystems.BigSegmentStore;
+import com.launchdarkly.sdk.server.subsystems.ComponentConfigurer;
+import com.launchdarkly.sdk.server.subsystems.PersistentDataStore;
 import com.launchdarkly.sdk.server.interfaces.BigSegmentStoreFactory;
 
 /**
@@ -11,12 +14,14 @@ import com.launchdarkly.sdk.server.interfaces.BigSegmentStoreFactory;
  */
 public abstract class Redis {
   /**
-   * Returns a builder object for creating a Redis-backed data store.
+   * Returns a builder object for creating a Redis-backed persistent data store.
    * <p>
-   * This can be used either for the main data store that holds feature flag data, or for the Big
-   * Segment store, or both. If you are using both, they do not have to have the same parameters.
-   * For instance, in this example the main data store uses a Redis host called "host1" and the Big
-   * Segment store uses a Redis host called "host2":
+   * This is for the main data store that holds feature flag data. To configure a
+   * Big Segment store, use {@link #bigSegmentStore()} instead.
+   * <p>
+   * You can use methods of the builder to specify any non-default Redis options
+   * you may want, before passing the builder to {@link Components#persistentDataStore(ComponentConfigurer)}.
+   * In this example, the store is configured to use a Redis host called "host1":
    * <pre><code>
    *     LDConfig config = new LDConfig.Builder()
    *         .dataStore(
@@ -24,21 +29,13 @@ public abstract class Redis {
    *                 Redis.dataStore().uri(URI.create("redis://host1:6379")
    *             )
    *         )
-   *         .bigSegments(
-   *             Components.bigSegments(
-   *                 Redis.dataStore().uri(URI.create("redis://host2:6379")
-   *             )
-   *         )
    *         .build();
    * </code></pre>
    * <p>
-   * Note that the builder is passed to one of two methods,
-   * {@link Components#persistentDataStore(PersistentDataStoreFactory)} or
-   * {@link Components#bigSegments(BigSegmentStoreFactory)}, depending on the context in which it is
-   * being used. This is because each of those contexts has its own additional configuration options
-   * that are unrelated to the Redis options. For instance, the
-   * {@link Components#persistentDataStore(PersistentDataStoreFactory)} builder has options for
-   * caching:
+   * Note that the SDK also has its own options related to data storage that are configured
+   * at a different level, because they are independent of what database is being used. For
+   * instance, the builder returned by {@link Components#persistentDataStore(ComponentConfigurer)}
+   * has options for caching:
    * <pre><code>
    *     LDConfig config = new LDConfig.Builder()
    *         .dataStore(
@@ -48,11 +45,48 @@ public abstract class Redis {
    *         )
    *         .build();
    * </code></pre>
-   * 
+   *
    * @return a data store configuration object
    */
-  public static RedisDataStoreBuilder dataStore() {
-    return new RedisDataStoreBuilder();
+  public static RedisStoreBuilder<PersistentDataStore> dataStore() {
+    return new RedisStoreBuilder.ForDataStore();
+  }
+
+  /**
+   * Returns a builder object for creating a Redis-backed Big Segment store.
+   * <p>
+   * You can use methods of the builder to specify any non-default Redis options
+   * you may want, before passing the builder to {@link Components#bigSegments(ComponentConfigurer)}.
+   * In this example, the store is configured to use a Redis host called "host2":
+   * <pre><code>
+   *     LDConfig config = new LDConfig.Builder()
+   *         .bigSegments(
+   *             Components.bigSegments(
+   *                 Redis.bigSegmentStore().uri(URI.create("redis://host2:6379")
+   *             )
+   *         )
+   *         .build();
+   * </code></pre>
+   * <p>
+   * Note that the SDK also has its own options related to Big Segments that are configured
+   * at a different level, because they are independent of what database is being used. For
+   * instance, the builder returned by {@link Components#bigSegments(ComponentConfigurer)}
+   * has an option for the status polling interval: 
+   * <pre><code>
+   *     LDConfig config = new LDConfig.Builder()
+   *         .dataStore(
+   *             Components.bigSegments(
+   *                 Redis.bigSegmentStore().uri(URI.create("redis://my-redis-host"))
+   *             ).statusPollInterval(Duration.ofSeconds(30))
+   *         )
+   *         .build();
+   * </code></pre>
+   * 
+   * @return a Big Segment store configuration object
+   * @since 5.0.0
+   */
+  public static RedisStoreBuilder<BigSegmentStore> bigSegmentStore() {
+    return new RedisStoreBuilder.ForBigSegments();
   }
   
   private Redis() {}

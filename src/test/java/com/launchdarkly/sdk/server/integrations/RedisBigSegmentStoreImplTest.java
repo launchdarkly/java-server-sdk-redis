@@ -16,7 +16,7 @@ public class RedisBigSegmentStoreImplTest extends BigSegmentStoreTestBase {
 
   @Override
   protected void clearData(String prefix) {
-    prefix = prefix == null || prefix.isEmpty() ? RedisDataStoreBuilder.DEFAULT_PREFIX : prefix;
+    prefix = prefix == null || prefix.isEmpty() ? RedisStoreBuilder.DEFAULT_PREFIX : prefix;
     try (Jedis client = new Jedis("localhost")) {
       for (String key : client.keys(prefix + ":*")) {
         client.del(key);
