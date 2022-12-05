@@ -81,7 +81,7 @@ public abstract class Redis {
    * </code></pre>
    * 
    * @return a Big Segment store configuration object
-   * @since 5.0.0
+   * @since 3.0.0
    */
   public static RedisStoreBuilder<BigSegmentStore> bigSegmentStore() {
     return new RedisStoreBuilder.ForBigSegments();
