@@ -1,8 +1,8 @@
 package com.launchdarkly.sdk.server.integrations;
 
-import com.launchdarkly.sdk.server.interfaces.BigSegmentStoreFactory;
-import com.launchdarkly.sdk.server.interfaces.BigSegmentStoreTypes;
-import com.launchdarkly.sdk.server.interfaces.ClientContext;
+import com.launchdarkly.sdk.server.subsystems.BigSegmentStore;
+import com.launchdarkly.sdk.server.subsystems.BigSegmentStoreTypes;
+import com.launchdarkly.sdk.server.subsystems.ComponentConfigurer;
 
 import redis.clients.jedis.Jedis;
 
@@ -10,8 +10,8 @@ import redis.clients.jedis.Jedis;
 public class RedisBigSegmentStoreImplTest extends BigSegmentStoreTestBase {
 
   @Override
-  protected BigSegmentStoreFactory makeStore(String prefix) {
-    return Redis.dataStore().prefix(prefix);
+  protected ComponentConfigurer<BigSegmentStore> makeStore(String prefix) {
+    return Redis.bigSegmentStore().prefix(prefix);
   }
 
   @Override

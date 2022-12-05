@@ -1,11 +1,9 @@
 package com.launchdarkly.sdk.server.integrations;
 
 import com.launchdarkly.sdk.server.Components;
-import com.launchdarkly.sdk.server.interfaces.PersistentDataStoreFactory;
 import com.launchdarkly.sdk.server.subsystems.BigSegmentStore;
 import com.launchdarkly.sdk.server.subsystems.ComponentConfigurer;
 import com.launchdarkly.sdk.server.subsystems.PersistentDataStore;
-import com.launchdarkly.sdk.server.interfaces.BigSegmentStoreFactory;
 
 /**
  * Integration between the LaunchDarkly SDK and Redis.
