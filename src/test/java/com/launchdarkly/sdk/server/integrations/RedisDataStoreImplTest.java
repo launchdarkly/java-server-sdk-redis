@@ -1,7 +1,8 @@
 package com.launchdarkly.sdk.server.integrations;
 
 import com.launchdarkly.sdk.server.integrations.RedisDataStoreImpl.UpdateListener;
-import com.launchdarkly.sdk.server.interfaces.PersistentDataStoreFactory;
+import com.launchdarkly.sdk.server.subsystems.ComponentConfigurer;
+import com.launchdarkly.sdk.server.subsystems.PersistentDataStore;
 
 import java.net.URI;
 
@@ -13,7 +14,7 @@ public class RedisDataStoreImplTest extends PersistentDataStoreTestBase<RedisDat
   private static final URI REDIS_URI = URI.create("redis://localhost:6379");
   
   @Override
-  protected PersistentDataStoreFactory buildStore(String prefix) {
+  protected ComponentConfigurer<PersistentDataStore> buildStore(String prefix) {
     return Redis.dataStore().uri(REDIS_URI).prefix(prefix);
   }
   
