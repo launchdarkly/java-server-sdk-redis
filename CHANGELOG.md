@@ -2,6 +2,17 @@
 
 All notable changes to the LaunchDarkly Java SDK Redis integration will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org).
 
+## [3.0.0] - 2022-12-07
+This release corresponds to the 6.0.0 release of the LaunchDarkly Java SDK. Any application code that is being updated to use the 6.0.0 SDK, and was using a 2.x version of `launchdarkly-java-server-sdk-redis`, should now use a 3.x version instead.
+
+There are no functional differences in the behavior of the Redis integration; the differences are only related to changes in the usage of interface types for configuration in the SDK.
+
+### Added:
+- `Redis.bigSegmentStore()`, which creates a configuration builder for use with Big Segments. Previously, the `Redis.dataStore()` builder was used for both regular data stores and Big Segment stores.
+
+### Changed:
+- The type `RedisDataStoreBuilder` has been removed, replaced by a generic type `RedisStoreBuilder`. Application code would not normally need to reference these types by name, but if necessary, use either `RedisStoreBuilder<PersistentDataStore>` or `RedisStoreBuilder<BigSegmentStore>` depending on whether you are configuring a regular data store or a Big Segment store.
+
 ## [2.0.0] - 2022-07-29
 This release updates the package to use the new logging mechanism that was introduced in version 5.10.0 of the LaunchDarkly Java SDK, so that log output from the Redis integration is handled in whatever way was specified by the SDK's logging configuration.
 
