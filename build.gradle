@@ -42,7 +42,7 @@ ext {
 }
 
 ext.versions = [
-    "sdk": "6.0.0-SNAPSHOT", // the *lowest* version we're compatible with
+    "sdk": "6.0.0", // the *lowest* version we're compatible with
     "jedis": "2.9.0"
 ]
 
