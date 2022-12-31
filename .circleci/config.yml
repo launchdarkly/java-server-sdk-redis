@@ -22,6 +22,11 @@ workflows:
           docker-image: cimg/openjdk:17.0
           requires:
             - build-linux
+      - test-linux:
+          name: Java 19 - Linux - OpenJDK
+          docker-image: cimg/openjdk:19.0
+          requires:
+            - build-linux
       - test-linux-with-other-jedis-version:
           name: test with Jedis 3.x
           jedis-version: 3.0.0
