@@ -43,7 +43,7 @@ ext {
 
 ext.versions = [
     "sdk": "6.0.0", // the *lowest* version we're compatible with
-    "jedis": "2.9.0"
+    "jedis": "5.1.5"
 ]
 
 ext.libraries = [:]
